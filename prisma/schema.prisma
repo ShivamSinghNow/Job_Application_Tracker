@@ -1,0 +1,38 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Resume {
+  id        String   @id @default(cuid())
+  filename  String
+  content   String
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("resumes")
+}
+
+model Application {
+  id           String   @id @default(cuid())
+  url          String
+  company      String
+  role         String
+  location     String
+  salaryRange  String?  @map("salary_range")
+  summary      String
+  requirements String
+  niceToHaves  String   @map("nice_to_haves")
+  fitScore     Int      @map("fit_score")
+  fitReasoning String   @map("fit_reasoning")
+  status       String   @default("SAVED")
+  notes        String?
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  @@map("applications")
+}
