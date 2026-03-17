@@ -1,7 +1,6 @@
 import { notFound } from "next/navigation";
-import Link from "next/link";
 import { prisma } from "@/lib/prisma";
-import { JobDetail } from "@/components/job-detail";
+import { JobDetailView } from "@/components/job-detail-view";
 import type { ApplicationRecord } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -29,15 +28,5 @@ export default async function JobPage({
     updatedAt: raw.updatedAt.toISOString(),
   };
 
-  return (
-    <main className="mx-auto min-h-screen max-w-4xl px-4 py-8">
-      <Link
-        href="/"
-        className="mb-6 inline-flex items-center text-sm text-muted-foreground hover:text-foreground"
-      >
-        &larr; Back to Dashboard
-      </Link>
-      <JobDetail application={application} />
-    </main>
-  );
+  return <JobDetailView application={application} />;
 }

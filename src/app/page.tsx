@@ -28,10 +28,5 @@ export default async function Home() {
     ? { hasResume: true, filename: resume.filename, contentLength: resume.content.length }
     : { hasResume: false };
 
-  return (
-    <main className="mx-auto min-h-screen max-w-6xl px-4 py-8">
-      <h1 className="mb-8 text-3xl font-bold tracking-tight">Job Tracker</h1>
-      <Dashboard initialApplications={applications} initialResume={resumeInfo} />
-    </main>
-  );
+  return <Dashboard initialApplications={applications} initialResume={resumeInfo} />;
 }

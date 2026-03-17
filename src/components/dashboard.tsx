@@ -2,28 +2,10 @@
 
 import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { FitBadge } from "@/components/fit-badge";
-import { StatusSelect } from "@/components/status-select";
-import { ResumeUpload } from "@/components/resume-upload";
-import { Trash2 } from "lucide-react";
-import type { ApplicationRecord, ApplicationStatus } from "@/lib/types";
-
-const ENRICHMENT_STEPS = [
-  "Fetching page...",
-  "Extracting details...",
-  "Scoring fit...",
-];
+  JobTrackerDashboard,
+  type ApplicationRecord,
+} from "@/components/job-tracker-dashboard";
 
 interface ResumeInfo {
   hasResume: boolean;
@@ -39,31 +21,29 @@ export function Dashboard({
   initialResume: ResumeInfo;
 }) {
   const router = useRouter();
-  const [url, setUrl] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [currentStep, setCurrentStep] = useState(0);
-  const [error, setError] = useState<string | null>(null);
-  const [expandedId, setExpandedId] = useState<string | null>(null);
   const [applications, setApplications] = useState(initialApplications);
   const [hasResume, setHasResume] = useState(initialResume.hasResume);
+  const [resumeFileName, setResumeFileName] = useState<string | null>(
+    initialResume.filename ?? null
+  );
+  const [loading, setLoading] = useState(false);
+  const [loadingStep, setLoadingStep] = useState<1 | 2 | 3>(1);
 
-  const handleSubmit = useCallback(
-    async (e: React.FormEvent) => {
-      e.preventDefault();
-      if (!url.trim() || loading) return;
+  const handleTrackJob = useCallback(
+    async (url: string) => {
+      if (loading) return;
 
       setLoading(true);
-      setError(null);
-      setCurrentStep(0);
+      setLoadingStep(1);
 
-      const stepTimer1 = setTimeout(() => setCurrentStep(1), 3000);
-      const stepTimer2 = setTimeout(() => setCurrentStep(2), 8000);
+      const stepTimer1 = setTimeout(() => setLoadingStep(2), 3000);
+      const stepTimer2 = setTimeout(() => setLoadingStep(3), 8000);
 
       try {
         const res = await fetch("/api/jobs", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ url: url.trim() }),
+          body: JSON.stringify({ url }),
         });
 
         if (!res.ok) {
@@ -72,44 +52,22 @@ export function Dashboard({
         }
 
         const job = await res.json();
-        setApplications((prev) => [
-          {
-            ...job,
-            createdAt: job.createdAt,
-            updatedAt: job.updatedAt,
-          },
-          ...prev,
-        ]);
-        setUrl("");
+        setApplications((prev) => [job, ...prev]);
         router.refresh();
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Something went wrong");
+        console.error("Failed to track job:", err);
       } finally {
         clearTimeout(stepTimer1);
         clearTimeout(stepTimer2);
         setLoading(false);
-        setCurrentStep(0);
+        setLoadingStep(1);
       }
     },
-    [url, loading, router]
-  );
-
-  const handleDelete = useCallback(
-    async (id: string) => {
-      try {
-        const res = await fetch(`/api/jobs/${id}`, { method: "DELETE" });
-        if (!res.ok) throw new Error("Failed to delete job");
-        setApplications((prev) => prev.filter((app) => app.id !== id));
-        if (expandedId === id) setExpandedId(null);
-      } catch (err) {
-        console.error("Failed to delete job:", err);
-      }
-    },
-    [expandedId]
+    [loading, router]
   );
 
   const handleStatusChange = useCallback(
-    async (id: string, status: ApplicationStatus) => {
+    async (id: string, status: ApplicationRecord["status"]) => {
       try {
         const res = await fetch(`/api/jobs/${id}`, {
           method: "PATCH",
@@ -129,200 +87,55 @@ export function Dashboard({
     []
   );
 
-  return (
-    <div className="space-y-6">
-      <div className="space-y-4">
-        <div>
-          <h2 className="mb-2 text-sm font-medium text-muted-foreground">Your Resume</h2>
-          <ResumeUpload
-            initialResume={initialResume}
-            onResumeChange={(info) => setHasResume(info.hasResume)}
-          />
-        </div>
+  const handleDelete = useCallback(async (id: string) => {
+    try {
+      const res = await fetch(`/api/jobs/${id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error("Failed to delete job");
+      setApplications((prev) => prev.filter((app) => app.id !== id));
+    } catch (err) {
+      console.error("Failed to delete job:", err);
+    }
+  }, []);
 
-        <form onSubmit={handleSubmit} className="flex gap-3">
-          <Input
-            type="url"
-            placeholder={hasResume ? "Paste a job posting URL..." : "Upload your resume first to start tracking jobs"}
-            value={url}
-            onChange={(e) => setUrl(e.target.value)}
-            disabled={loading || !hasResume}
-            className="flex-1"
-          />
-          <Button type="submit" disabled={loading || !url.trim() || !hasResume}>
-            {loading ? "Processing..." : "Track Job"}
-          </Button>
-        </form>
-      </div>
+  const handleResumeUpload = useCallback(
+    async (file: File) => {
+      try {
+        const formData = new FormData();
+        formData.append("file", file);
 
-      {loading && (
-        <div className="rounded-lg border bg-muted/50 p-4">
-          <div className="space-y-2">
-            {ENRICHMENT_STEPS.map((step, i) => (
-              <div key={step} className="flex items-center gap-2 text-sm">
-                {i < currentStep ? (
-                  <span className="text-emerald-600">&#10003;</span>
-                ) : i === currentStep ? (
-                  <span className="animate-pulse text-primary">&#9679;</span>
-                ) : (
-                  <span className="text-muted-foreground">&#9675;</span>
-                )}
-                <span
-                  className={
-                    i <= currentStep
-                      ? "text-foreground"
-                      : "text-muted-foreground"
-                  }
-                >
-                  {step}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+        const res = await fetch("/api/resume", {
+          method: "POST",
+          body: formData,
+        });
 
-      {error && (
-        <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800 dark:border-red-800 dark:bg-red-950/50 dark:text-red-400">
-          {error}
-        </div>
-      )}
+        if (!res.ok) {
+          const data = await res.json();
+          throw new Error(data.error || "Failed to upload resume");
+        }
 
-      {applications.length === 0 ? (
-        <div className="py-12 text-center text-muted-foreground">
-          No applications yet. Paste a job URL above to get started.
-        </div>
-      ) : (
-        <div className="rounded-lg border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Role</TableHead>
-                <TableHead>Company</TableHead>
-                <TableHead className="text-center">Fit Score</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Date Added</TableHead>
-                <TableHead className="w-10" />
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {applications.map((app) => (
-                <>
-                  <TableRow
-                    key={app.id}
-                    className="cursor-pointer"
-                    onClick={() =>
-                      setExpandedId(expandedId === app.id ? null : app.id)
-                    }
-                  >
-                    <TableCell className="font-medium">
-                      <Link
-                        href={`/jobs/${app.id}`}
-                        className="hover:underline"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        {app.role}
-                      </Link>
-                    </TableCell>
-                    <TableCell>{app.company}</TableCell>
-                    <TableCell className="text-center">
-                      <FitBadge score={app.fitScore} />
-                    </TableCell>
-                    <TableCell>
-                      <StatusSelect
-                        value={app.status}
-                        onChange={(s) => handleStatusChange(app.id, s)}
-                      />
-                    </TableCell>
-                    <TableCell className="text-right text-muted-foreground">
-                      {new Date(app.createdAt).toLocaleDateString()}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDelete(app.id);
-                        }}
-                        className="rounded p-1 text-muted-foreground transition-colors hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-950/50 dark:hover:text-red-400"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    </TableCell>
-                  </TableRow>
-                  {expandedId === app.id && (
-                    <TableRow key={`${app.id}-expanded`}>
-                      <TableCell colSpan={6} className="whitespace-normal bg-muted/30 p-4">
-                        <ExpandedRow app={app} />
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-      )}
-    </div>
+        const data = await res.json();
+        setHasResume(true);
+        setResumeFileName(data.filename);
+        router.refresh();
+      } catch (err) {
+        console.error("Failed to upload resume:", err);
+        setResumeFileName(null);
+      }
+    },
+    [router]
   );
-}
 
-function ExpandedRow({ app }: { app: ApplicationRecord }) {
   return (
-    <div className="grid gap-4 md:grid-cols-2">
-      <div className="min-w-0">
-        <h4 className="mb-1 text-sm font-semibold">Summary</h4>
-        <p className="break-words text-sm text-muted-foreground">{app.summary}</p>
-
-        {app.salaryRange && (
-          <div className="mt-3">
-            <h4 className="mb-1 text-sm font-semibold">Salary Range</h4>
-            <p className="text-sm text-muted-foreground">{app.salaryRange}</p>
-          </div>
-        )}
-
-        <div className="mt-3">
-          <h4 className="mb-1 text-sm font-semibold">Location</h4>
-          <p className="text-sm text-muted-foreground">{app.location}</p>
-        </div>
-      </div>
-
-      <div className="min-w-0">
-        <h4 className="mb-1 text-sm font-semibold">Fit Reasoning</h4>
-        <ul className="space-y-1">
-          {app.fitReasoning.map((reason, i) => (
-            <li key={i} className="break-words text-sm text-muted-foreground">
-              &bull; {reason}
-            </li>
-          ))}
-        </ul>
-
-        <div className="mt-3">
-          <h4 className="mb-1 text-sm font-semibold">
-            Requirements ({app.requirements.length})
-          </h4>
-          <ul className="space-y-0.5">
-            {app.requirements.slice(0, 5).map((req, i) => (
-              <li key={i} className="break-words text-sm text-muted-foreground">
-                &bull; {req}
-              </li>
-            ))}
-            {app.requirements.length > 5 && (
-              <li className="text-sm text-muted-foreground">
-                ...and {app.requirements.length - 5} more
-              </li>
-            )}
-          </ul>
-        </div>
-      </div>
-
-      <div className="md:col-span-2">
-        <Link
-          href={`/jobs/${app.id}`}
-          className="text-sm font-medium text-primary hover:underline"
-        >
-          View full details &rarr;
-        </Link>
-      </div>
-    </div>
+    <JobTrackerDashboard
+      applications={applications}
+      onStatusChange={handleStatusChange}
+      onDelete={handleDelete}
+      onTrackJob={handleTrackJob}
+      onResumeUpload={handleResumeUpload}
+      isLoading={loading}
+      loadingStep={loadingStep}
+      hasResume={hasResume}
+      initialResumeFileName={resumeFileName}
+    />
   );
 }
