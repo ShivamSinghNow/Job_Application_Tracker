@@ -16,6 +16,7 @@ import {
 import { FitBadge } from "@/components/fit-badge";
 import { StatusSelect } from "@/components/status-select";
 import { ResumeUpload } from "@/components/resume-upload";
+import { Trash2 } from "lucide-react";
 import type { ApplicationRecord, ApplicationStatus } from "@/lib/types";
 
 const ENRICHMENT_STEPS = [
@@ -91,6 +92,20 @@ export function Dashboard({
       }
     },
     [url, loading, router]
+  );
+
+  const handleDelete = useCallback(
+    async (id: string) => {
+      try {
+        const res = await fetch(`/api/jobs/${id}`, { method: "DELETE" });
+        if (!res.ok) throw new Error("Failed to delete job");
+        setApplications((prev) => prev.filter((app) => app.id !== id));
+        if (expandedId === id) setExpandedId(null);
+      } catch (err) {
+        console.error("Failed to delete job:", err);
+      }
+    },
+    [expandedId]
   );
 
   const handleStatusChange = useCallback(
@@ -187,6 +202,7 @@ export function Dashboard({
                 <TableHead className="text-center">Fit Score</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead className="text-right">Date Added</TableHead>
+                <TableHead className="w-10" />
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -221,10 +237,21 @@ export function Dashboard({
                     <TableCell className="text-right text-muted-foreground">
                       {new Date(app.createdAt).toLocaleDateString()}
                     </TableCell>
+                    <TableCell className="text-right">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDelete(app.id);
+                        }}
+                        className="rounded p-1 text-muted-foreground transition-colors hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-950/50 dark:hover:text-red-400"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </TableCell>
                   </TableRow>
                   {expandedId === app.id && (
                     <TableRow key={`${app.id}-expanded`}>
-                      <TableCell colSpan={5} className="whitespace-normal bg-muted/30 p-4">
+                      <TableCell colSpan={6} className="whitespace-normal bg-muted/30 p-4">
                         <ExpandedRow app={app} />
                       </TableCell>
                     </TableRow>
