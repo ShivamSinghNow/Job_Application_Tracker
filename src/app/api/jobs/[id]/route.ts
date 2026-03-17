@@ -32,7 +32,7 @@ export async function PATCH(
     return NextResponse.json({
       ...application,
       requirements: JSON.parse(application.requirements),
-      niceToHaves: JSON.parse(application.niceToHaves),
+      potentialImprovements: JSON.parse(application.potentialImprovements),
       fitReasoning: JSON.parse(application.fitReasoning),
     });
   } catch (error) {

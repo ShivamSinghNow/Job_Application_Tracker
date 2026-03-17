@@ -12,7 +12,7 @@ export default async function Home() {
   const applications: ApplicationRecord[] = rawApplications.map((app) => ({
     ...app,
     requirements: JSON.parse(app.requirements),
-    niceToHaves: JSON.parse(app.niceToHaves),
+    potentialImprovements: JSON.parse(app.potentialImprovements),
     fitReasoning: JSON.parse(app.fitReasoning),
     status: app.status as ApplicationRecord["status"],
     createdAt: app.createdAt.toISOString(),

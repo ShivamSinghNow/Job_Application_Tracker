@@ -22,7 +22,7 @@ export default async function JobPage({
   const application: ApplicationRecord = {
     ...raw,
     requirements: JSON.parse(raw.requirements),
-    niceToHaves: JSON.parse(raw.niceToHaves),
+    potentialImprovements: JSON.parse(raw.potentialImprovements),
     fitReasoning: JSON.parse(raw.fitReasoning),
     status: raw.status as ApplicationRecord["status"],
     createdAt: raw.createdAt.toISOString(),

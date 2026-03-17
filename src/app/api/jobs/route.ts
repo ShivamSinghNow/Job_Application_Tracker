@@ -28,7 +28,7 @@ export async function POST(request: Request) {
         salaryRange: enriched.salary_range,
         summary: enriched.summary,
         requirements: JSON.stringify(enriched.requirements),
-        niceToHaves: JSON.stringify(enriched.nice_to_haves),
+        potentialImprovements: JSON.stringify(enriched.potential_improvements),
         fitScore: enriched.fit_score,
         fitReasoning: JSON.stringify(enriched.fit_reasoning),
       },
@@ -37,7 +37,7 @@ export async function POST(request: Request) {
     return NextResponse.json({
       ...application,
       requirements: JSON.parse(application.requirements),
-      niceToHaves: JSON.parse(application.niceToHaves),
+      potentialImprovements: JSON.parse(application.potentialImprovements),
       fitReasoning: JSON.parse(application.fitReasoning),
     });
   } catch (error) {
@@ -56,7 +56,7 @@ export async function GET() {
     const parsed = applications.map((app) => ({
       ...app,
       requirements: JSON.parse(app.requirements),
-      niceToHaves: JSON.parse(app.niceToHaves),
+      potentialImprovements: JSON.parse(app.potentialImprovements),
       fitReasoning: JSON.parse(app.fitReasoning),
     }));
 

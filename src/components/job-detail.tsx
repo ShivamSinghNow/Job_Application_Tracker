@@ -139,21 +139,26 @@ export function JobDetail({ application }: { application: ApplicationRecord }) {
         </div>
 
         <div>
-          <h2 className="mb-3 text-lg font-semibold">Nice to Haves</h2>
-          {application.niceToHaves.length > 0 ? (
+          <h2 className="mb-3 text-lg font-semibold">Potential Improvements</h2>
+          {application.potentialImprovements.length === 1 &&
+          application.potentialImprovements[0].toLowerCase().includes("perfect match") ? (
+            <div className="flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 p-4 dark:border-emerald-800 dark:bg-emerald-950/30">
+              <span className="text-lg">&#10003;</span>
+              <span className="text-sm font-medium text-emerald-700 dark:text-emerald-400">
+                {application.potentialImprovements[0]}
+              </span>
+            </div>
+          ) : application.potentialImprovements.length > 0 ? (
             <ul className="space-y-2">
-              {application.niceToHaves.map((item, i) => (
-                <li key={i} className="flex items-start gap-2">
-                  <input
-                    type="checkbox"
-                    className="mt-1 shrink-0 rounded"
-                  />
+              {application.potentialImprovements.map((item, i) => (
+                <li key={i} className="flex items-start gap-2 rounded-md border bg-muted/30 p-3">
+                  <span className="mt-0.5 shrink-0 text-sm text-primary">&rarr;</span>
                   <span className="text-sm text-muted-foreground">{item}</span>
                 </li>
               ))}
             </ul>
           ) : (
-            <p className="text-sm text-muted-foreground">None listed</p>
+            <p className="text-sm text-muted-foreground">No suggestions available</p>
           )}
         </div>
       </div>

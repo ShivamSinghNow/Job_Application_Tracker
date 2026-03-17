@@ -33,6 +33,7 @@ export interface JobData {
 export interface FitScore {
   fit_score: number;
   fit_reasoning: string[];
+  potential_improvements: string[];
 }
 
 export interface ApplicationRecord {
@@ -44,7 +45,7 @@ export interface ApplicationRecord {
   salaryRange: string | null;
   summary: string;
   requirements: string[];
-  niceToHaves: string[];
+  potentialImprovements: string[];
   fitScore: number;
   fitReasoning: string[];
   status: ApplicationStatus;

@@ -26,7 +26,7 @@ model Application {
   salaryRange  String?  @map("salary_range")
   summary      String
   requirements String
-  niceToHaves  String   @map("nice_to_haves")
+  potentialImprovements String @map("potential_improvements")
   fitScore     Int      @map("fit_score")
   fitReasoning String   @map("fit_reasoning")
   status       String   @default("SAVED")
