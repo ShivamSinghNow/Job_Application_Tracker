@@ -1,5 +1,5 @@
 import Anthropic from "@anthropic-ai/sdk";
-import { prisma } from "./prisma";
+import { sql, type ResumeRow } from "./db";
 import type { JobData, FitScore } from "./types";
 
 const client = new Anthropic();
@@ -45,15 +45,15 @@ function extractJSON<T>(text: string): T {
 }
 
 async function getResumeContent(): Promise<string> {
-  const resume = await prisma.resume.findFirst({
-    orderBy: { createdAt: "desc" },
-  });
+  const resumes = await sql<ResumeRow[]>`
+    SELECT * FROM resumes ORDER BY created_at DESC LIMIT 1
+  `;
 
-  if (!resume) {
+  if (resumes.length === 0) {
     throw new Error("No resume uploaded. Please upload your resume before tracking jobs.");
   }
 
-  return resume.content;
+  return resumes[0].content;
 }
 
 async function fetchUrl(url: string): Promise<string> {

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { sql, type ResumeRow } from "@/lib/db";
+import { randomUUID } from "crypto";
 // pdf-parse v1: import inner module to avoid test file loading bug in index.js
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const pdf = require("pdf-parse/lib/pdf-parse.js");
@@ -30,19 +31,24 @@ export async function POST(request: Request) {
       );
     }
 
-    await prisma.resume.deleteMany();
-    const resume = await prisma.resume.create({
-      data: {
-        filename: file.name,
-        content: parsed.text.trim(),
-      },
-    });
+    // Delete all existing resumes
+    await sql`DELETE FROM resumes`;
+
+    // Create new resume
+    const id = randomUUID();
+    const now = new Date();
+    const content = parsed.text.trim();
+
+    await sql`
+      INSERT INTO resumes (id, filename, content, created_at)
+      VALUES (${id}, ${file.name}, ${content}, ${now})
+    `;
 
     return NextResponse.json({
-      id: resume.id,
-      filename: resume.filename,
-      contentLength: resume.content.length,
-      createdAt: resume.createdAt,
+      id,
+      filename: file.name,
+      contentLength: content.length,
+      createdAt: now.toISOString(),
     });
   } catch (error) {
     console.error("Failed to process resume:", error);
@@ -54,9 +60,10 @@ export async function POST(request: Request) {
 
 export async function GET() {
   try {
-    const resume = await prisma.resume.findFirst({
-      orderBy: { createdAt: "desc" },
-    });
+    const rows = await sql<ResumeRow[]>`
+      SELECT * FROM resumes ORDER BY created_at DESC LIMIT 1
+    `;
+    const resume = rows[0];
 
     if (!resume) {
       return NextResponse.json({ hasResume: false });
@@ -67,7 +74,7 @@ export async function GET() {
       id: resume.id,
       filename: resume.filename,
       contentLength: resume.content.length,
-      createdAt: resume.createdAt,
+      createdAt: new Date(resume.created_at).toISOString(),
     });
   } catch (error) {
     console.error("Failed to fetch resume:", error);
@@ -77,7 +84,7 @@ export async function GET() {
 
 export async function DELETE() {
   try {
-    await prisma.resume.deleteMany();
+    await sql`DELETE FROM resumes`;
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Failed to delete resume:", error);

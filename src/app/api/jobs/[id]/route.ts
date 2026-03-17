@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { sql, type ApplicationRow } from "@/lib/db";
 import { APPLICATION_STATUSES } from "@/lib/types";
 
 export async function PATCH(
@@ -20,20 +20,51 @@ export async function PATCH(
       }
     }
 
-    const data: Record<string, unknown> = {};
-    if (status !== undefined) data.status = status;
-    if (notes !== undefined) data.notes = notes;
+    const now = new Date();
 
-    const application = await prisma.application.update({
-      where: { id },
-      data,
-    });
+    // Build dynamic update query
+    if (status !== undefined && notes !== undefined) {
+      await sql`
+        UPDATE applications SET status = ${status}, notes = ${notes}, updated_at = ${now}
+        WHERE id = ${id}
+      `;
+    } else if (status !== undefined) {
+      await sql`
+        UPDATE applications SET status = ${status}, updated_at = ${now}
+        WHERE id = ${id}
+      `;
+    } else if (notes !== undefined) {
+      await sql`
+        UPDATE applications SET notes = ${notes}, updated_at = ${now}
+        WHERE id = ${id}
+      `;
+    }
+
+    const rows = await sql<ApplicationRow[]>`
+      SELECT * FROM applications WHERE id = ${id}
+    `;
+    const application = rows[0];
+
+    if (!application) {
+      return NextResponse.json({ error: "Application not found" }, { status: 404 });
+    }
 
     return NextResponse.json({
-      ...application,
+      id: application.id,
+      url: application.url,
+      company: application.company,
+      role: application.role,
+      location: application.location,
+      salaryRange: application.salary_range,
+      summary: application.summary,
       requirements: JSON.parse(application.requirements),
-      potentialImprovements: JSON.parse(application.potentialImprovements),
-      fitReasoning: JSON.parse(application.fitReasoning),
+      potentialImprovements: JSON.parse(application.potential_improvements),
+      fitScore: application.fit_score,
+      fitReasoning: JSON.parse(application.fit_reasoning),
+      status: application.status,
+      notes: application.notes,
+      createdAt: new Date(application.created_at).toISOString(),
+      updatedAt: new Date(application.updated_at).toISOString(),
     });
   } catch (error) {
     console.error("Failed to update job:", error);
@@ -47,7 +78,7 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params;
-    await prisma.application.delete({ where: { id } });
+    await sql`DELETE FROM applications WHERE id = ${id}`;
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Failed to delete job:", error);

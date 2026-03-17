@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { sql, type ApplicationRow } from "@/lib/db";
 import { enrichJob } from "@/lib/enrichment";
+import { randomUUID } from "crypto";
 
 export async function POST(request: Request) {
   try {
@@ -19,26 +20,39 @@ export async function POST(request: Request) {
 
     const enriched = await enrichJob(url);
 
-    const application = await prisma.application.create({
-      data: {
-        url,
-        company: enriched.company,
-        role: enriched.role,
-        location: enriched.location,
-        salaryRange: enriched.salary_range,
-        summary: enriched.summary,
-        requirements: JSON.stringify(enriched.requirements),
-        potentialImprovements: JSON.stringify(enriched.potential_improvements),
-        fitScore: enriched.fit_score,
-        fitReasoning: JSON.stringify(enriched.fit_reasoning),
-      },
-    });
+    const id = randomUUID();
+    const now = new Date();
+
+    await sql`
+      INSERT INTO applications (
+        id, url, company, role, location, salary_range, summary,
+        requirements, potential_improvements, fit_score, fit_reasoning,
+        status, notes, created_at, updated_at
+      ) VALUES (
+        ${id}, ${url}, ${enriched.company}, ${enriched.role}, ${enriched.location},
+        ${enriched.salary_range}, ${enriched.summary},
+        ${JSON.stringify(enriched.requirements)}, ${JSON.stringify(enriched.potential_improvements)},
+        ${enriched.fit_score}, ${JSON.stringify(enriched.fit_reasoning)},
+        'SAVED', NULL, ${now}, ${now}
+      )
+    `;
 
     return NextResponse.json({
-      ...application,
-      requirements: JSON.parse(application.requirements),
-      potentialImprovements: JSON.parse(application.potentialImprovements),
-      fitReasoning: JSON.parse(application.fitReasoning),
+      id,
+      url,
+      company: enriched.company,
+      role: enriched.role,
+      location: enriched.location,
+      salaryRange: enriched.salary_range,
+      summary: enriched.summary,
+      requirements: enriched.requirements,
+      potentialImprovements: enriched.potential_improvements,
+      fitScore: enriched.fit_score,
+      fitReasoning: enriched.fit_reasoning,
+      status: "SAVED",
+      notes: null,
+      createdAt: now.toISOString(),
+      updatedAt: now.toISOString(),
     });
   } catch (error) {
     console.error("Failed to enrich job:", error);
@@ -49,15 +63,26 @@ export async function POST(request: Request) {
 
 export async function GET() {
   try {
-    const applications = await prisma.application.findMany({
-      orderBy: { createdAt: "desc" },
-    });
+    const applications = await sql<ApplicationRow[]>`
+      SELECT * FROM applications ORDER BY created_at DESC
+    `;
 
     const parsed = applications.map((app) => ({
-      ...app,
+      id: app.id,
+      url: app.url,
+      company: app.company,
+      role: app.role,
+      location: app.location,
+      salaryRange: app.salary_range,
+      summary: app.summary,
       requirements: JSON.parse(app.requirements),
-      potentialImprovements: JSON.parse(app.potentialImprovements),
-      fitReasoning: JSON.parse(app.fitReasoning),
+      potentialImprovements: JSON.parse(app.potential_improvements),
+      fitScore: app.fit_score,
+      fitReasoning: JSON.parse(app.fit_reasoning),
+      status: app.status,
+      notes: app.notes,
+      createdAt: new Date(app.created_at).toISOString(),
+      updatedAt: new Date(app.updated_at).toISOString(),
     }));
 
     return NextResponse.json(parsed);

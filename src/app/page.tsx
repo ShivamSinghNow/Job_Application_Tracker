@@ -1,28 +1,36 @@
-import { prisma } from "@/lib/prisma";
+import { sql, type ApplicationRow, type ResumeRow } from "@/lib/db";
 import { Dashboard } from "@/components/dashboard";
 import type { ApplicationRecord } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
-  const rawApplications = await prisma.application.findMany({
-    orderBy: { createdAt: "desc" },
-  });
+  const rawApplications = await sql<ApplicationRow[]>`
+    SELECT * FROM applications ORDER BY created_at DESC
+  `;
 
   const applications: ApplicationRecord[] = rawApplications.map((app) => ({
-    ...app,
+    id: app.id,
+    url: app.url,
+    company: app.company,
+    role: app.role,
+    location: app.location,
+    salaryRange: app.salary_range,
+    summary: app.summary,
     requirements: JSON.parse(app.requirements),
-    potentialImprovements: JSON.parse(app.potentialImprovements),
-    fitReasoning: JSON.parse(app.fitReasoning),
+    potentialImprovements: JSON.parse(app.potential_improvements),
+    fitScore: app.fit_score,
+    fitReasoning: JSON.parse(app.fit_reasoning),
     status: app.status as ApplicationRecord["status"],
-    createdAt: app.createdAt.toISOString(),
-    updatedAt: app.updatedAt.toISOString(),
+    notes: app.notes,
+    createdAt: new Date(app.created_at).toISOString(),
+    updatedAt: new Date(app.updated_at).toISOString(),
   }));
 
-  const resume = await prisma.resume.findFirst({
-    orderBy: { createdAt: "desc" },
-    select: { filename: true, content: true },
-  });
+  const resumes = await sql<ResumeRow[]>`
+    SELECT * FROM resumes ORDER BY created_at DESC LIMIT 1
+  `;
+  const resume = resumes[0];
 
   const resumeInfo = resume
     ? { hasResume: true, filename: resume.filename, contentLength: resume.content.length }
