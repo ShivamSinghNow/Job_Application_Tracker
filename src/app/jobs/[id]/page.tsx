@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { prisma } from "@/lib/prisma";
+import { sql, type ApplicationRow } from "@/lib/db";
 import { JobDetailView } from "@/components/job-detail-view";
 import type { ApplicationRecord } from "@/lib/types";
 
@@ -12,20 +12,26 @@ export default async function JobPage({
 }) {
   const { id } = await params;
 
-  const raw = await prisma.application.findUnique({
-    where: { id },
-  });
+  const applications = await sql<ApplicationRow[]>`
+    SELECT * FROM applications WHERE id = ${id} LIMIT 1
+  `;
 
-  if (!raw) return notFound();
+  if (applications.length === 0) return notFound();
+
+  const raw = applications[0];
 
   const application: ApplicationRecord = {
-    ...raw,
+    id: raw.id,
+    url: raw.url,
+    company: raw.company,
+    role: raw.role,
     requirements: JSON.parse(raw.requirements),
-    potentialImprovements: JSON.parse(raw.potentialImprovements),
-    fitReasoning: JSON.parse(raw.fitReasoning),
+    potentialImprovements: JSON.parse(raw.potential_improvements),
+    fitReasoning: JSON.parse(raw.fit_reasoning),
+    fitScore: raw.fit_score,
     status: raw.status as ApplicationRecord["status"],
-    createdAt: raw.createdAt.toISOString(),
-    updatedAt: raw.updatedAt.toISOString(),
+    createdAt: raw.created_at.toISOString(),
+    updatedAt: raw.updated_at.toISOString(),
   };
 
   return <JobDetailView application={application} />;
