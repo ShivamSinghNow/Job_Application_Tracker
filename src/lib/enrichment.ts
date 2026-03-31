@@ -44,8 +44,9 @@ function extractJSON<T>(text: string): T {
   );
 }
 
-async function getResumeContent(): Promise<string> {
+async function getResumeContent(userId: string): Promise<string> {
   const resume = await prisma.resume.findFirst({
+    where: { userId },
     orderBy: { createdAt: "desc" },
   });
 
@@ -78,6 +79,7 @@ export async function extractJobData(url: string): Promise<JobData> {
   const response = await client.messages.create({
     model: "claude-sonnet-4-20250514",
     max_tokens: 4096,
+    temperature: 0,
     messages: [
       {
         role: "user",
@@ -119,6 +121,7 @@ export async function scoreResumeFit(jobData: JobData, resumeContent: string): P
   const response = await client.messages.create({
     model: "claude-sonnet-4-20250514",
     max_tokens: 2048,
+    temperature: 0,
     messages: [
       {
         role: "user",
@@ -162,9 +165,10 @@ No markdown formatting.`,
 }
 
 export async function enrichJob(
-  url: string
+  url: string,
+  userId: string
 ): Promise<JobData & FitScore> {
-  const resumeContent = await getResumeContent();
+  const resumeContent = await getResumeContent(userId);
   const jobData = await extractJobData(url);
   const fitScore = await scoreResumeFit(jobData, resumeContent);
   return { ...jobData, ...fitScore };

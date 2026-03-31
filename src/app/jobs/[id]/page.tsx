@@ -1,4 +1,5 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
+import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { JobDetailView } from "@/components/job-detail-view";
 import type { ApplicationRecord } from "@/lib/types";
@@ -10,10 +11,13 @@ export default async function JobPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
+  const session = await auth();
+  if (!session?.user?.id) redirect("/auth/signin");
+
   const { id } = await params;
 
-  const raw = await prisma.application.findUnique({
-    where: { id },
+  const raw = await prisma.application.findFirst({
+    where: { id, user: { id: session.user.id } },
   });
 
   if (!raw) return notFound();

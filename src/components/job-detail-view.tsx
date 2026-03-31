@@ -222,7 +222,7 @@ export function JobDetailView({
         {/* Top Navigation */}
         <div className="mb-6 flex items-center justify-between">
           <Link
-            href="/"
+            href="/dashboard"
             className="group inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground dark:hover:text-neon-cyan transition-colors"
           >
             <ArrowLeft className="size-4 transition-transform group-hover:-translate-x-1" />

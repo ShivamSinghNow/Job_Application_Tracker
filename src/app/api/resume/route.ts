@@ -1,11 +1,15 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getCurrentUser, unauthorized } from "@/lib/auth-helpers";
 // pdf-parse v1: import inner module to avoid test file loading bug in index.js
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const pdf = require("pdf-parse/lib/pdf-parse.js");
 
 export async function POST(request: Request) {
   try {
+    const user = await getCurrentUser();
+    if (!user) return unauthorized();
+
     const formData = await request.formData();
     const file = formData.get("file") as File | null;
 
@@ -30,11 +34,12 @@ export async function POST(request: Request) {
       );
     }
 
-    await prisma.resume.deleteMany();
+    await prisma.resume.deleteMany({ where: { userId: user.id } });
     const resume = await prisma.resume.create({
       data: {
         filename: file.name,
         content: parsed.text.trim(),
+        userId: user.id,
       },
     });
 
@@ -54,7 +59,11 @@ export async function POST(request: Request) {
 
 export async function GET() {
   try {
+    const user = await getCurrentUser();
+    if (!user) return unauthorized();
+
     const resume = await prisma.resume.findFirst({
+      where: { userId: user.id },
       orderBy: { createdAt: "desc" },
     });
 
@@ -77,7 +86,10 @@ export async function GET() {
 
 export async function DELETE() {
   try {
-    await prisma.resume.deleteMany();
+    const user = await getCurrentUser();
+    if (!user) return unauthorized();
+
+    await prisma.resume.deleteMany({ where: { userId: user.id } });
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Failed to delete resume:", error);

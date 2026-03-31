@@ -1,12 +1,16 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { APPLICATION_STATUSES } from "@/lib/types";
+import { getCurrentUser, unauthorized } from "@/lib/auth-helpers";
 
 export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const user = await getCurrentUser();
+    if (!user) return unauthorized();
+
     const { id } = await params;
     const body = await request.json();
     const { status, notes } = body;
@@ -18,6 +22,14 @@ export async function PATCH(
           { status: 400 }
         );
       }
+    }
+
+    const existing = await prisma.application.findFirst({
+      where: { id, userId: user.id },
+    });
+
+    if (!existing) {
+      return NextResponse.json({ error: "Application not found" }, { status: 404 });
     }
 
     const data: Record<string, unknown> = {};
@@ -46,7 +58,19 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const user = await getCurrentUser();
+    if (!user) return unauthorized();
+
     const { id } = await params;
+
+    const existing = await prisma.application.findFirst({
+      where: { id, userId: user.id },
+    });
+
+    if (!existing) {
+      return NextResponse.json({ error: "Application not found" }, { status: 404 });
+    }
+
     await prisma.application.delete({ where: { id } });
     return NextResponse.json({ success: true });
   } catch (error) {

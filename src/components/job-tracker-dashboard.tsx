@@ -3,6 +3,7 @@
 import { useState, Fragment } from "react";
 import Link from "next/link";
 import { useTheme } from "next-themes";
+import { signOut } from "next-auth/react";
 import {
   Upload,
   Link2,
@@ -21,6 +22,8 @@ import {
   Moon,
   Sun,
   Monitor,
+  LogOut,
+  UserIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -81,6 +84,12 @@ export interface ApplicationRecord {
   updatedAt: string;
 }
 
+interface UserInfo {
+  name?: string | null;
+  email?: string | null;
+  image?: string | null;
+}
+
 interface JobTrackerDashboardProps {
   applications: ApplicationRecord[];
   onStatusChange?: (id: string, status: ApplicationRecord["status"]) => void;
@@ -91,6 +100,7 @@ interface JobTrackerDashboardProps {
   loadingStep?: 1 | 2 | 3;
   hasResume?: boolean;
   initialResumeFileName?: string | null;
+  user?: UserInfo;
 }
 
 const STATUS_OPTIONS: { value: ApplicationRecord["status"]; label: string }[] =
@@ -181,6 +191,44 @@ function ThemeToggle() {
   );
 }
 
+function UserMenu({ user }: { user: UserInfo }) {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button
+          variant="outline"
+          size="icon"
+          className="border-border bg-card/50 hover:bg-accent hover:border-neon-cyan dark:neon-border-cyan"
+        >
+          {user.image ? (
+            <img src={user.image} alt="" className="size-6 rounded-full" />
+          ) : (
+            <UserIcon className="size-4 dark:text-neon-cyan" />
+          )}
+          <span className="sr-only">User menu</span>
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="bg-card border-border w-56">
+        <div className="px-2 py-1.5 text-sm">
+          {user.name && (
+            <p className="font-medium text-foreground truncate">{user.name}</p>
+          )}
+          {user.email && (
+            <p className="text-muted-foreground truncate text-xs">{user.email}</p>
+          )}
+        </div>
+        <DropdownMenuItem
+          onClick={() => signOut({ callbackUrl: "/" })}
+          className="gap-2 cursor-pointer text-destructive focus:text-destructive"
+        >
+          <LogOut className="size-4" />
+          <span>Sign out</span>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
 export function JobTrackerDashboard({
   applications,
   onStatusChange,
@@ -191,6 +239,7 @@ export function JobTrackerDashboard({
   loadingStep = 1,
   hasResume = false,
   initialResumeFileName = null,
+  user,
 }: JobTrackerDashboardProps) {
   const [jobUrl, setJobUrl] = useState("");
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
@@ -251,7 +300,10 @@ export function JobTrackerDashboard({
               AI-powered application tracking and fit analysis
             </p>
           </div>
-          <ThemeToggle />
+          <div className="flex items-center gap-3">
+            <ThemeToggle />
+            {user && <UserMenu user={user} />}
+          </div>
         </div>
 
         {/* Top Section - Upload and Track */}

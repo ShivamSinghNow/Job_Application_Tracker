@@ -13,12 +13,20 @@ interface ResumeInfo {
   contentLength?: number;
 }
 
+interface UserInfo {
+  name?: string | null;
+  email?: string | null;
+  image?: string | null;
+}
+
 export function Dashboard({
   initialApplications,
   initialResume,
+  user,
 }: {
   initialApplications: ApplicationRecord[];
   initialResume: ResumeInfo;
+  user?: UserInfo;
 }) {
   const router = useRouter();
   const [applications, setApplications] = useState(initialApplications);
@@ -136,6 +144,7 @@ export function Dashboard({
       loadingStep={loadingStep}
       hasResume={hasResume}
       initialResumeFileName={resumeFileName}
+      user={user}
     />
   );
 }

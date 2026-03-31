@@ -1,9 +1,13 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { enrichJob } from "@/lib/enrichment";
+import { getCurrentUser, unauthorized } from "@/lib/auth-helpers";
 
 export async function POST(request: Request) {
   try {
+    const user = await getCurrentUser();
+    if (!user) return unauthorized();
+
     const body = await request.json();
     const { url } = body;
 
@@ -17,7 +21,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Invalid URL format" }, { status: 400 });
     }
 
-    const enriched = await enrichJob(url);
+    const enriched = await enrichJob(url, user.id);
 
     const application = await prisma.application.create({
       data: {
@@ -31,6 +35,7 @@ export async function POST(request: Request) {
         potentialImprovements: JSON.stringify(enriched.potential_improvements),
         fitScore: enriched.fit_score,
         fitReasoning: JSON.stringify(enriched.fit_reasoning),
+        userId: user.id,
       },
     });
 
@@ -49,7 +54,11 @@ export async function POST(request: Request) {
 
 export async function GET() {
   try {
+    const user = await getCurrentUser();
+    if (!user) return unauthorized();
+
     const applications = await prisma.application.findMany({
+      where: { userId: user.id },
       orderBy: { createdAt: "desc" },
     });
 
