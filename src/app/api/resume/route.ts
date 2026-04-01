@@ -8,6 +8,7 @@ const pdf = require("pdf-parse/lib/pdf-parse.js");
 export async function POST(request: Request) {
   try {
     const user = await getCurrentUser();
+    console.log("[v0] Resume upload - user:", user?.id);
     if (!user) return unauthorized();
 
     const formData = await request.formData();
@@ -34,7 +35,9 @@ export async function POST(request: Request) {
       );
     }
 
+    console.log("[v0] Deleting existing resumes for user:", user.id);
     await prisma.resume.deleteMany({ where: { userId: user.id } });
+    console.log("[v0] Creating new resume with filename:", file.name);
     const resume = await prisma.resume.create({
       data: {
         filename: file.name,
@@ -42,6 +45,7 @@ export async function POST(request: Request) {
         userId: user.id,
       },
     });
+    console.log("[v0] Resume created successfully:", resume.id);
 
     return NextResponse.json({
       id: resume.id,
