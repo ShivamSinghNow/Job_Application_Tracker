@@ -293,7 +293,7 @@ export function JobTrackerDashboard({
                 as="h1"
                 className="text-3xl font-bold tracking-tight text-foreground dark:text-neon-cyan dark:neon-text-cyan"
               >
-                Job Tracker
+                Power Tracker
               </GlitchText>
             </div>
             <p className="text-muted-foreground">

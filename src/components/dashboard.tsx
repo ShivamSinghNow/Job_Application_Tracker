@@ -107,6 +107,7 @@ export function Dashboard({
 
   const handleResumeUpload = useCallback(
     async (file: File) => {
+      console.log("[v0] Starting resume upload for file:", file.name);
       try {
         const formData = new FormData();
         formData.append("file", file);
@@ -116,17 +117,21 @@ export function Dashboard({
           body: formData,
         });
 
+        console.log("[v0] Resume upload response status:", res.status);
+
         if (!res.ok) {
           const data = await res.json();
+          console.error("[v0] Resume upload failed:", data.error);
           throw new Error(data.error || "Failed to upload resume");
         }
 
         const data = await res.json();
+        console.log("[v0] Resume upload success:", data);
         setHasResume(true);
         setResumeFileName(data.filename);
         router.refresh();
       } catch (err) {
-        console.error("Failed to upload resume:", err);
+        console.error("[v0] Failed to upload resume:", err);
         setResumeFileName(null);
       }
     },

@@ -8,7 +8,6 @@ import { Cpu, Loader2, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-
 export default function SignInPage() {
   return (
     <Suspense>
@@ -63,7 +62,7 @@ function SignInForm() {
             <div className="flex size-10 items-center justify-center rounded-lg bg-primary/10 dark:bg-neon-cyan/20 dark:neon-glow-cyan">
               <Cpu className="size-5 text-primary dark:text-neon-cyan" />
             </div>
-            <span className="text-xl font-bold dark:text-neon-cyan">Job Tracker</span>
+            <span className="text-xl font-bold dark:text-neon-cyan">Power Tracker</span>
           </Link>
           <CardTitle className="text-2xl">Welcome back</CardTitle>
           <CardDescription>Sign in to your account to continue</CardDescription>

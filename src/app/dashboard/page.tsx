@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { auth } from "@/lib/auth";
+import { getSession } from "@/lib/auth-helpers";
 import { prisma } from "@/lib/prisma";
 import { Dashboard } from "@/components/dashboard";
 import type { ApplicationRecord } from "@/lib/types";
@@ -7,7 +7,7 @@ import type { ApplicationRecord } from "@/lib/types";
 export const dynamic = "force-dynamic";
 
 export default async function DashboardPage() {
-  const session = await auth();
+  const session = await getSession();
   if (!session?.user?.id) redirect("/auth/signin");
 
   const userId = session.user.id;

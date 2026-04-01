@@ -1,15 +1,20 @@
-import { auth } from "@/lib/auth";
 import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 
-export default auth((req) => {
+export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
-  const isLoggedIn = !!req.auth;
+
+  // Check for Auth.js session token in cookies
+  const sessionToken = req.cookies.get("authjs.session-token")?.value 
+    || req.cookies.get("__Secure-authjs.session-token")?.value;
+  const isLoggedIn = !!sessionToken;
 
   const publicRoutes = ["/", "/auth/signin", "/auth/signup"];
   const isPublicRoute = publicRoutes.includes(pathname);
   const isAuthApi = pathname.startsWith("/api/auth");
+  const isApi = pathname.startsWith("/api/");
 
-  if (isAuthApi) {
+  if (isAuthApi || isApi) {
     return NextResponse.next();
   }
 
@@ -24,7 +29,7 @@ export default auth((req) => {
   }
 
   return NextResponse.next();
-});
+}
 
 export const config = {
   matcher: [

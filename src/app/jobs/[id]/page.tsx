@@ -1,5 +1,5 @@
 import { notFound, redirect } from "next/navigation";
-import { auth } from "@/lib/auth";
+import { getSession } from "@/lib/auth-helpers";
 import { prisma } from "@/lib/prisma";
 import { JobDetailView } from "@/components/job-detail-view";
 import type { ApplicationRecord } from "@/lib/types";
@@ -11,7 +11,7 @@ export default async function JobPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const session = await auth();
+  const session = await getSession();
   if (!session?.user?.id) redirect("/auth/signin");
 
   const { id } = await params;
