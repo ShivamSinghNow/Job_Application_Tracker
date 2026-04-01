@@ -5,8 +5,10 @@ import { encode } from "next-auth/jwt";
 import { cookies } from "next/headers";
 
 export async function POST(request: Request) {
+  console.log("[v0] Sign-in API called");
   try {
     const { email, password } = await request.json();
+    console.log("[v0] Attempting sign-in for:", email);
 
     if (!email || !password) {
       return NextResponse.json(
@@ -18,6 +20,7 @@ export async function POST(request: Request) {
     const user = await prisma.user.findUnique({
       where: { email },
     });
+    console.log("[v0] User found:", user ? "yes" : "no");
 
     if (!user || !user.password) {
       return NextResponse.json(
