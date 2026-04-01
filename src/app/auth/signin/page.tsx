@@ -30,24 +30,21 @@ function SignInForm() {
     setLoading(true);
 
     try {
-      const res = await fetch("/api/credentials-signin", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+      const result = await signIn("credentials", {
+        email,
+        password,
+        callbackUrl,
+        redirect: false,
       });
 
-      const data = await res.json();
-
-      if (!res.ok) {
-        setError(data.error || "Invalid email or password");
-        setLoading(false);
-        return;
+      if (result?.error) {
+        setError("Invalid email or password");
+      } else if (result?.url) {
+        window.location.href = result.url;
       }
-
-      // Redirect on success
-      window.location.href = callbackUrl;
     } catch {
       setError("Something went wrong. Please try again.");
+    } finally {
       setLoading(false);
     }
   };

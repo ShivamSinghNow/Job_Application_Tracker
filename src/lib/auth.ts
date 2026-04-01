@@ -7,12 +7,7 @@ import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
-  // Note: Don't use adapter with credentials provider + JWT strategy
-  // as it causes CSRF issues. We handle user lookup manually in authorize().
   trustHost: true,
-  experimental: {
-    enableWebAuthn: false,
-  },
   session: { strategy: "jwt" },
   pages: {
     signIn: "/auth/signin",
