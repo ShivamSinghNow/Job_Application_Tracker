@@ -2,6 +2,7 @@
 
 import { useState, Fragment } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useTheme } from "next-themes";
 import { signOut } from "next-auth/react";
 import {
@@ -201,7 +202,7 @@ function UserMenu({ user }: { user: UserInfo }) {
           className="border-border bg-card/50 hover:bg-accent hover:border-neon-cyan dark:neon-border-cyan"
         >
           {user.image ? (
-            <img src={user.image} alt="" className="size-6 rounded-full" />
+            <Image src={user.image} alt="" width={24} height={24} className="size-6 rounded-full" />
           ) : (
             <UserIcon className="size-4 dark:text-neon-cyan" />
           )}

@@ -114,7 +114,7 @@ export default function LandingPage() {
         {/* Footer */}
         <footer className="border-t border-border py-8 text-center text-sm text-muted-foreground">
           <span className="font-mono dark:text-neon-cyan/60">Power Tracker</span>
-          <span className="mx-2 dark:text-neon-magenta/60">//</span>
+          <span className="mx-2 dark:text-neon-magenta/60">{'//'}</span>
           Powered by AI
         </footer>
       </div>
