@@ -24,7 +24,7 @@ export default async function LandingPage() {
               <Cpu className="size-5 text-primary dark:text-neon-cyan" />
             </div>
             <span className="text-xl font-bold tracking-tight text-foreground dark:text-neon-cyan">
-              Job Tracker
+              Power Tracker
             </span>
           </div>
           <div className="flex items-center gap-3">
@@ -117,7 +117,7 @@ export default async function LandingPage() {
 
         {/* Footer */}
         <footer className="border-t border-border py-8 text-center text-sm text-muted-foreground">
-          <span className="font-mono dark:text-neon-cyan/60">Job Tracker</span>
+          <span className="font-mono dark:text-neon-cyan/60">Power Tracker</span>
           <span className="mx-2 dark:text-neon-magenta/60">//</span>
           Powered by AI
         </footer>
