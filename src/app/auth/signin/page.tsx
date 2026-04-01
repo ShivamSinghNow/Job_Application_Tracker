@@ -8,8 +8,6 @@ import { Cpu, Loader2, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { credentialsSignIn } from "./actions";
-
 export default function SignInPage() {
   return (
     <Suspense>
@@ -32,15 +30,23 @@ function SignInForm() {
     setLoading(true);
 
     try {
-      const result = await credentialsSignIn(email, password, callbackUrl);
-      if (result?.error) {
-        setError(result.error);
+      const res = await fetch("/api/auth/signin", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.error || "Invalid email or password");
         setLoading(false);
+        return;
       }
-      // If successful, the server action will redirect
+
+      // Redirect on success
+      window.location.href = callbackUrl;
     } catch {
-      // Redirect errors are expected and handled by Next.js
-      // Only show error for actual failures
       setError("Something went wrong. Please try again.");
       setLoading(false);
     }
