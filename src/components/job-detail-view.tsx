@@ -392,7 +392,7 @@ export function JobDetailView({
                       id={`req-${index}`}
                       checked={checkedRequirements.has(index)}
                       onCheckedChange={() => toggleRequirement(index)}
-                      className="mt-0.5 border-border data-[state=checked]:bg-neon-cyan data-[state=checked]:border-neon-cyan dark:data-[state=checked]:text-black"
+                      className="mt-0.5 border-white/60 data-[state=checked]:bg-neon-cyan data-[state=checked]:border-neon-cyan dark:data-[state=checked]:text-black"
                     />
                     <label
                       htmlFor={`req-${index}`}

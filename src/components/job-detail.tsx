@@ -130,7 +130,7 @@ export function JobDetail({ application }: { application: ApplicationRecord }) {
               <li key={i} className="flex items-start gap-2">
                 <input
                   type="checkbox"
-                  className="mt-1 shrink-0 rounded"
+                  className="mt-1 shrink-0 rounded border border-white/60 accent-neon-cyan"
                 />
                 <span className="text-sm text-muted-foreground">{req}</span>
               </li>
