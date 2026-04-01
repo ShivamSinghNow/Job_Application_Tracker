@@ -1,11 +1,7 @@
-import { redirect } from "next/navigation";
-import { auth } from "@/lib/auth";
 import Link from "next/link";
 import { Cpu, Target, FileText, Zap, BarChart3, Shield } from "lucide-react";
 
-export default async function LandingPage() {
-  const session = await auth();
-  if (session) redirect("/dashboard");
+export default function LandingPage() {
 
   return (
     <div className="min-h-screen bg-background cyber-grid relative overflow-hidden">
