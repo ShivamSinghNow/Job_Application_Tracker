@@ -36,11 +36,13 @@ export function Dashboard({
   );
   const [loading, setLoading] = useState(false);
   const [loadingStep, setLoadingStep] = useState<1 | 2 | 3>(1);
+  const [error, setError] = useState<string | null>(null);
 
   const handleTrackJob = useCallback(
     async (url: string) => {
       if (loading) return;
 
+      setError(null);
       setLoading(true);
       setLoadingStep(1);
 
@@ -63,7 +65,8 @@ export function Dashboard({
         setApplications((prev) => [job, ...prev]);
         router.refresh();
       } catch (err) {
-        console.error("Failed to track job:", err);
+        const message = err instanceof Error ? err.message : "Failed to track job";
+        setError(message);
       } finally {
         clearTimeout(stepTimer1);
         clearTimeout(stepTimer2);
@@ -150,6 +153,7 @@ export function Dashboard({
       hasResume={hasResume}
       initialResumeFileName={resumeFileName}
       user={user}
+      errorMessage={error}
     />
   );
 }

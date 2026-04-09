@@ -21,6 +21,17 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Invalid URL format" }, { status: 400 });
     }
 
+    const existing = await prisma.application.findFirst({
+      where: { url, userId: user.id },
+    });
+
+    if (existing) {
+      return NextResponse.json(
+        { error: "You are already tracking this job" },
+        { status: 409 }
+      );
+    }
+
     const enriched = await enrichJob(url, user.id);
 
     const application = await prisma.application.create({

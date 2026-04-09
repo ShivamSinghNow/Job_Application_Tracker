@@ -48,3 +48,6 @@ next-env.d.ts
 # prisma
 prisma/dev.db
 prisma/dev.db-journal
+
+#random files 
+YC_CODING_SESSION.md

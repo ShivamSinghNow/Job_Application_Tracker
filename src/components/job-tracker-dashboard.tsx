@@ -25,6 +25,7 @@ import {
   Monitor,
   LogOut,
   UserIcon,
+  AlertCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -102,6 +103,7 @@ interface JobTrackerDashboardProps {
   hasResume?: boolean;
   initialResumeFileName?: string | null;
   user?: UserInfo;
+  errorMessage?: string | null;
 }
 
 const STATUS_OPTIONS: { value: ApplicationRecord["status"]; label: string }[] =
@@ -241,6 +243,7 @@ export function JobTrackerDashboard({
   hasResume = false,
   initialResumeFileName = null,
   user,
+  errorMessage,
 }: JobTrackerDashboardProps) {
   const [jobUrl, setJobUrl] = useState("");
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
@@ -380,6 +383,14 @@ export function JobTrackerDashboard({
                 </Button>
               </div>
             </div>
+
+            {/* Error Message */}
+            {errorMessage && !isLoading && (
+              <div className="flex items-center gap-2 rounded-lg border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+                <AlertCircle className="size-4 shrink-0" />
+                <span>{errorMessage}</span>
+              </div>
+            )}
 
             {/* Loading Stepper */}
             {isLoading && (
