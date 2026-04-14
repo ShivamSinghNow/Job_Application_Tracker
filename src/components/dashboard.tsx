@@ -6,6 +6,8 @@ import {
   JobTrackerDashboard,
   type ApplicationRecord,
 } from "@/components/job-tracker-dashboard";
+import { DiscoveredJobs } from "@/components/discovered-jobs";
+import { cn } from "@/lib/utils";
 
 interface ResumeInfo {
   hasResume: boolean;
@@ -37,6 +39,7 @@ export function Dashboard({
   const [loading, setLoading] = useState(false);
   const [loadingStep, setLoadingStep] = useState<1 | 2 | 3>(1);
   const [error, setError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<"tracker" | "discover">("tracker");
 
   const handleTrackJob = useCallback(
     async (url: string) => {
@@ -142,18 +145,51 @@ export function Dashboard({
   );
 
   return (
-    <JobTrackerDashboard
-      applications={applications}
-      onStatusChange={handleStatusChange}
-      onDelete={handleDelete}
-      onTrackJob={handleTrackJob}
-      onResumeUpload={handleResumeUpload}
-      isLoading={loading}
-      loadingStep={loadingStep}
-      hasResume={hasResume}
-      initialResumeFileName={resumeFileName}
-      user={user}
-      errorMessage={error}
-    />
+    <div>
+      <div className="mx-auto max-w-7xl px-4 pt-8 sm:px-6 lg:px-8">
+        <div className="flex gap-1 rounded-lg bg-muted/50 p-1 mb-0 w-fit">
+          <button
+            onClick={() => setActiveTab("tracker")}
+            className={cn(
+              "px-4 py-2 rounded-md text-sm font-medium transition-colors",
+              activeTab === "tracker"
+                ? "bg-background text-foreground shadow-sm dark:bg-card dark:text-neon-cyan"
+                : "text-muted-foreground hover:text-foreground"
+            )}
+          >
+            Job Tracker
+          </button>
+          <button
+            onClick={() => setActiveTab("discover")}
+            className={cn(
+              "px-4 py-2 rounded-md text-sm font-medium transition-colors",
+              activeTab === "discover"
+                ? "bg-background text-foreground shadow-sm dark:bg-card dark:text-neon-cyan"
+                : "text-muted-foreground hover:text-foreground"
+            )}
+          >
+            Discover Jobs
+          </button>
+        </div>
+      </div>
+
+      {activeTab === "tracker" ? (
+        <JobTrackerDashboard
+          applications={applications}
+          onStatusChange={handleStatusChange}
+          onDelete={handleDelete}
+          onTrackJob={handleTrackJob}
+          onResumeUpload={handleResumeUpload}
+          isLoading={loading}
+          loadingStep={loadingStep}
+          hasResume={hasResume}
+          initialResumeFileName={resumeFileName}
+          user={user}
+          errorMessage={error}
+        />
+      ) : (
+        <DiscoveredJobs hasResume={hasResume} />
+      )}
+    </div>
   );
 }

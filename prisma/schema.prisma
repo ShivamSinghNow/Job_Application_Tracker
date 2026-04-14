@@ -8,18 +8,20 @@ datasource db {
 }
 
 model User {
-  id            String    @id @default(cuid())
-  name          String?
-  email         String    @unique
-  emailVerified DateTime? @map("email_verified")
-  image         String?
-  password      String?
-  accounts      Account[]
-  sessions      Session[]
-  resumes       Resume[]
-  applications  Application[]
-  createdAt     DateTime  @default(now()) @map("created_at")
-  updatedAt     DateTime  @updatedAt @map("updated_at")
+  id               String             @id @default(cuid())
+  name             String?
+  email            String             @unique
+  emailVerified    DateTime?          @map("email_verified")
+  image            String?
+  password         String?
+  accounts         Account[]
+  sessions         Session[]
+  resumes          Resume[]
+  applications     Application[]
+  discoveredJobs   DiscoveredJob[]
+  jobSearchProfile JobSearchProfile?
+  createdAt        DateTime           @default(now()) @map("created_at")
+  updatedAt        DateTime           @updatedAt @map("updated_at")
 
   @@map("users")
 }
@@ -97,4 +99,47 @@ model Application {
 
   @@unique([userId, url])
   @@map("applications")
+}
+
+model DiscoveredJob {
+  id               String    @id @default(cuid())
+  title            String
+  company          String
+  location         String
+  url              String
+  salaryRange      String?   @map("salary_range")
+  description      String
+  source           String
+  atsJobId         String    @map("ats_job_id")
+  postedAt         DateTime? @map("posted_at")
+  seniorityLevel   String?   @map("seniority_level")
+  remoteStatus     String?   @map("remote_status")
+  fitScore         Int       @map("fit_score")
+  matchExplanation String    @map("match_explanation")
+  companyFunding   String?   @map("company_funding")
+  dismissed        Boolean   @default(false)
+  tracked          Boolean   @default(false)
+  discoveredAt     DateTime  @default(now()) @map("discovered_at")
+  userId           String    @map("user_id")
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, atsJobId])
+  @@map("discovered_jobs")
+}
+
+model JobSearchProfile {
+  id                  String   @id @default(cuid())
+  targetCompanies     String   @map("target_companies")
+  targetRoles         String   @map("target_roles")
+  skills              String
+  seniorityLevel      String   @map("seniority_level")
+  yearsOfExperience   Int?     @map("years_of_experience")
+  locationPreferences String   @map("location_preferences")
+  industryPreferences String?  @map("industry_preferences")
+  userId              String   @unique @map("user_id")
+  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt           DateTime @default(now()) @map("created_at")
+  updatedAt           DateTime @updatedAt @map("updated_at")
+
+  @@map("job_search_profiles")
 }

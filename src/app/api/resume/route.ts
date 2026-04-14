@@ -37,6 +37,7 @@ export async function POST(request: Request) {
 
     console.log("[v0] Deleting existing resumes for user:", user.id);
     await prisma.resume.deleteMany({ where: { userId: user.id } });
+    await prisma.jobSearchProfile.deleteMany({ where: { userId: user.id } });
     console.log("[v0] Creating new resume with filename:", file.name);
     const resume = await prisma.resume.create({
       data: {
